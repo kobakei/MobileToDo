@@ -139,7 +139,6 @@ $(document).ready(function(){
     appendToDo(title, desc, created_at);
 
     // Save data to localStorage
-    // TODO: Post data to server
     var param = {
       title:      title,
       desc:       desc,
@@ -152,7 +151,6 @@ $(document).ready(function(){
     }
     db.push(param);
     localStorage["todo"] = JSON.stringify(db);
-    $.post('/todos/create', param); // dummy
     
     // Close dialog
     $('#input-todo-title').val("");
