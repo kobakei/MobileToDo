@@ -1,7 +1,7 @@
 <div data-role="page" id="page-main">
 
   <div data-role="header">
-    <h1>Title</h1>
+    <h1>Your ToDo</h1>
   </div><!-- Header -->
   
   <div data-role="content">
@@ -94,7 +94,8 @@ $(document).ready(function(){
     var childs2 = page.find('.todo-desc-desc');
     childs2.text(desc);
     var childs3 = page.find('.todo-desc-date');
-    childs3.text("Created at " + date.toString());
+    var dateText = (1900 + date.getYear()) + "/" + (1 + date.getMonth())+ "/" + date.getDate();
+    childs3.text("Created at " + dateText);
     $("body").append(page);
     console.log($("body"));
 
