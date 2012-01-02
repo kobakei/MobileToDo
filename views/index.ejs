@@ -15,8 +15,8 @@
     </ul>
   </div><!-- Content -->
   
-  <div data-role="footer" data-position="fixed" role="contentinfo">
-    <div data-role="navbar" role="navigation">
+  <div data-role="footer" data-position="fixed">
+    <div data-role="navbar">
       <ul>
         <li>
           <a href="#page-new" data-rel="dialog" data-icon="plus">New</a>
@@ -60,7 +60,68 @@
 
 <!-- Script -->
 <script type="text/javascript">
+// Add list
+function appendToDoList(title, desc, created_at) {
+  console.log("appendToDoList");
+  var dom = $("#todo-template").clone(true);
+  dom.attr('id', 'list-' + created_at);
+  dom.css('display', 'block');
+  var childs1 = dom.find('.todo-title');
+  childs1.text(title);
+  var childs2 = dom.find('.todo-desc');
+  childs2.text(desc);
+  var childs3 = dom.find('.todo-link');
+  childs3.attr('href', '#page-' + created_at);
+  $("#todo-list").append(dom);
+}
+
+// Add page
+function appendToDoPage(title, desc, created_at) {
+  console.log("appendToDoPage");
+  // Add description page
+  var page = $("#page-desc-template").clone(true);
+  page.attr('id', 'page-' + created_at);
+  
+  var childs1 = page.find('.todo-desc-title');
+  childs1.text(title);
+  
+  var childs2 = page.find('.todo-desc-desc');
+  childs2.text(desc);
+  
+  var childs3 = page.find('.todo-desc-date');
+  var date = new Date();
+  date.setTime(created_at);
+  var dateText = (1900 + date.getYear()) + "/" + (1 + date.getMonth())+ "/" + date.getDate();
+  childs3.text("Created at " + dateText);
+  
+  $("body").append(page);
+  console.log($("body"));
+}
+
+function appendToDo(title, desc, created_at) {
+  appendToDoList(title, desc, created_at);
+  appendToDoPage(title, desc, created_at);
+}
+
+//
+function restoreLocalStorage() {
+  var dbText = localStorage["todo"];
+  var db = [];
+  if (dbText) {
+    db = JSON.parse(dbText);
+  }
+  //
+  for (var i = 0; i < db.length; i++) {
+    console.log("i=" + i)
+    var title = db[i].title;
+    var desc = db[i].desc;
+    var created_at = db[i].created_at;
+    appendToDo(title, desc, created_at);
+  }
+}
+
 $(document).ready(function(){
+
   // Close dialog
   $('#todo-cancel').click(function () {
     $('.ui-dialog').dialog('close');
@@ -74,38 +135,24 @@ $(document).ready(function(){
     var date = new Date();
     var created_at = date.getTime();
 
-    // Add list
-    var dom = $("#todo-template").clone(true);
-    dom.attr('id', 'list-' + created_at);
-    dom.css('display', 'block');
-    var childs1 = dom.find('.todo-title');
-    childs1.text(title);
-    var childs2 = dom.find('.todo-desc');
-    childs2.text(desc);
-    var childs3 = dom.find('.todo-link');
-    childs3.attr('href', '#page-' + created_at);
-    $("#todo-list").append(dom);
+    // Append DOMs
+    appendToDo(title, desc, created_at);
 
-    // Add description page
-    var page = $("#page-desc-template").clone(true);
-    page.attr('id', 'page-' + created_at);
-    var childs1 = page.find('.todo-desc-title');
-    childs1.text(title);
-    var childs2 = page.find('.todo-desc-desc');
-    childs2.text(desc);
-    var childs3 = page.find('.todo-desc-date');
-    var dateText = (1900 + date.getYear()) + "/" + (1 + date.getMonth())+ "/" + date.getDate();
-    childs3.text("Created at " + dateText);
-    $("body").append(page);
-    console.log($("body"));
-
-    // Post data to server
+    // Save data to localStorage
+    // TODO: Post data to server
     var param = {
       title:      title,
       desc:       desc,
       created_at: created_at
     };
-    $.post('/todos/create', param);
+    var db = [];
+    var dbText = localStorage["todo"];
+    if (dbText) {
+      db = JSON.parse(dbText);
+    }
+    db.push(param);
+    localStorage["todo"] = JSON.stringify(db);
+    $.post('/todos/create', param); // dummy
     
     // Close dialog
     $('#input-todo-title').val("");
@@ -126,6 +173,21 @@ $(document).ready(function(){
     // remove
     //page.remove();
     list.remove();
+
+    // Delete localStorage
+    var created_at = parseInt(listId.replace("list-", ""));
+    var db = JSON.parse(localStorage['todo']);
+    var temp = [];
+    for (var i = 0; i < db.length; i++) {
+      if (db[i].created_at === created_at) {
+      } else {
+        temp.push(db[i]);
+      }
+    }
+    localStorage['todo'] = JSON.stringify(temp);
   });
+
+  // Craete DOMs from localStorage
+  restoreLocalStorage();
 });
 </script>
